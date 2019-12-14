@@ -26,7 +26,7 @@ int findstr(string & pat, vector<string> & fl_names, std::vector<string>::iterat
 	while (1){
 		_cur_lock.lock();
 		//_lock_fl_names.lock();
-		if (++cur != fl_names.end()){
+		if (--cur != fl_names.end()){
 			b = true;
 			//_lock_fl_names.unlock();
 			_cur_lock.unlock();
@@ -109,7 +109,7 @@ int findpath_th(const string & path, // where we started
 	while (1){
 		cur_dir_lock.lock();
 		count_lock.lock();
-		if (cur_dir == dir_names.end() && count == 0){
+		if (--cur_dir == dir_names.end() && count == 0){
 			return 0;
 		}
 		cur_dir_lock.unlock();
