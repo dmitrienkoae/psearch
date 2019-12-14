@@ -17,7 +17,8 @@
 using namespace std;
 
 
-int findstr(string & pat, vector<string> & fl_names, std::vector<string>::iterator & cur, mutex & _cur_lock,  mutex & _lock_fl_names, mutex & _lock_output){
+int findstr(string & pat, vector<string> & fl_names, std::vector<string>::iterator & cur, mutex & _cur_lock,
+	    mutex & _lock_fl_names, mutex & _lock_output){
 	string s;
 	int count;
 	bool b = false;
@@ -25,10 +26,13 @@ int findstr(string & pat, vector<string> & fl_names, std::vector<string>::iterat
 	while (1){
 		_cur_lock.lock();
 		//_lock_fl_names.lock();
-		if (cur != fl_names.end())
+		if (++cur != fl_names.end()){
 			b = true;
-		//_lock_fl_names.unlock();
-		_cur_lock.unlock();
+			//_lock_fl_names.unlock();
+			_cur_lock.unlock();
+		}
+		else 
+			return 0;
 		while (b) {
 			//_lock_fl_names.lock();
 			_cur_lock.lock();
@@ -91,7 +95,7 @@ int findstr(string & pat, vector<string> & fl_names, std::vector<string>::iterat
 }
 
 
-
+//не работает
 int findpath_th(const string & path, // where we started
   vector<string>& fl_names, //
   vector <string> &dir_names, 
@@ -175,7 +179,7 @@ int findpath_th(const string & path, // where we started
 
 
 
-
+//поиск всех файлов в один поток
 int findpath(const string & path, vector<string>& fl_names, int n){
 	DIR *dir;
 	if((dir=opendir((path).c_str())) != NULL){
@@ -194,7 +198,7 @@ int findpath(const string & path, vector<string>& fl_names, int n){
 			if(S_ISDIR(st.st_mode)){
 				//It is a directory
 				//cout << n << endl;
-                if (n) break;
+                		if (n) break;
 					//else findfile(filename, find, n); for search in 1 path
 				
 				else 
@@ -224,10 +228,10 @@ int main(int argc, char** argv){
 	mutex dir_lock;
 	mutex count_lock;
 	mutex _lock_fl_names;
-    mutex _lock_output;
+    	mutex _lock_output;
 	mutex _cur_lock;
 	mutex cur_dir_lock;
-    vector <string> dir_names;
+    	vector <string> dir_names;
 	vector <string> fl_names; 
 	vector <thread> v_th;
 	
@@ -240,36 +244,36 @@ int main(int argc, char** argv){
 	string ttt;
 	size_t posen;
 	size_t poset ;
-    size_t posep ;
+   	size_t posep ;
 	size_t posesl;
 	
-    for (int i = 1; i < argc; i++){
+   	for (int i = 1; i < argc; i++){
 		string s = string(argv[i]);
 		size_t o = s.front();
-        posen = s.find("-n");
+        	posen = s.find("-n");
 		poset = s.find("-t");
-        posep = s.find("0");
-        posesl = s.find("/");
-        //std::cout << poset << ' ' << string::npos << endl;
-        if ((posen == string::npos && poset == string::npos &&  posesl == string::npos)
+        	posep = s.find("0");
+        	posesl = s.find("/");
+       		//std::cout << poset << ' ' << string::npos << endl;
+        	if ((posen == string::npos && poset == string::npos &&  posesl == string::npos)
 			&& (posen != o || poset != o || posep != o ||  posesl != o) ){
-            str = s.erase(0, 1);
+            		str = s.erase(0, 1);
 			//cout << str << endl;
 		}
 		else if (posen != string::npos) {
-            n = 1;
-            }
+          		n = 1;
+            	}
 		else if(poset != string::npos) {
 			for (size_t i = poset+2; i < s.size(); i++ )
 				ttt += s[i]; 
 			
 			if (ttt != "")
 				t_pth = atoi(ttt.c_str());
-        }
+        	}
 		else {
 			dir_ = s;
 		}
-    }
+	    }
 
 	//for (int i = 0; i < fl_names.size(); i++){
 	//	cout << fl_names[i] << endl;
@@ -282,7 +286,7 @@ int main(int argc, char** argv){
         //for (int i = 0; i < fl_names.size(); i++)
         //	cout << fl_names[i] << endl;
 		std::vector<string>::iterator cur = fl_names.begin();
-        cout << fl_names.size() << endl;
+        	cout << fl_names.size() << endl;
 		findstr(str, fl_names, cur, _cur_lock, _lock_fl_names, _lock_output);
 		
         
@@ -304,7 +308,7 @@ int main(int argc, char** argv){
 		//int oe = findpath(dir_, fl_names, n);
 		//v_th.push_back(thread(findpath, ref(dir_), ref(fl_names), n));
 		std::vector<string>::iterator cur = fl_names.begin();
-    	for (int i = 1; i <= t_pth; i++){
+    		for (int i = 1; i <= t_pth; i++){
 			v_th.push_back(thread(findstr, ref(str), ref(fl_names), ref(cur), ref(_cur_lock), ref(_lock_fl_names), ref(_lock_output)));		
 		}
 		//wait for finish
